@@ -110,14 +110,13 @@ def euclidean_dist(goal_node, node):
 def motion_model(orientation):
     orientation = np.deg2rad(orientation)
     theta = np.deg2rad(30)
-    model = [[np.cos(2*theta + orientation), np.sin(2 * theta + orientation), 1],  # 60
-             [np.cos(theta + orientation), np.sin(theta + orientation), 1],  # 30
-             [np.cos(orientation), np.sin(orientation), 1],  # 0
-             [np.cos(-theta + orientation), np.sin(-theta + orientation), 1],  # -30
-             [np.cos(-2 * theta + orientation), np.sin(-2 * theta + orientation), 1]  # -60
+    step_size = 10
+    model = [[step_size * np.cos(2*theta + orientation), step_size * np.sin(2 * theta + orientation), 1, np.rad2deg(2 * theta + orientation)],  # 60
+             [step_size * np.cos(theta + orientation), step_size * np.sin(theta + orientation), 1, np.rad2deg(theta + orientation)],  # 30
+             [step_size * np.cos(orientation), step_size * np.sin(orientation), 1, np.rad2deg(orientation)],  # 0
+             [step_size * np.cos(-theta + orientation), step_size * np.sin(-theta + orientation), 1, np.rad2deg(-theta + orientation)],  # -30
+             [step_size * np.cos(-2 * theta + orientation), step_size * np.sin(-2 * theta + orientation), 1, np.rad2deg(-2 * theta + orientation)]  # -60
              ]
-
-    # add step size
 
     return model
 
@@ -148,7 +147,7 @@ def a_star(start_node, goal_node):
 
         # If goal node is reached, Break the while loop.
         # Add a threshold(circle) for the goal node
-        if (goal_node.x-cur.x)**2 + (goal_node.y-cur.y)**2 <= 1.5**2:
+        if (goal_node.x-cur.x)**2 + (goal_node.y-cur.y)**2 <= 10**2:
             # print("Goal!!!")
             goal_node.parent_index = cur.parent_index
             goal_node.cost = cur.cost
@@ -169,7 +168,7 @@ def a_star(start_node, goal_node):
         for i in range(len(motion)):
             next_x = round(cur.x + motion[i][0], 3)
             next_y = round(cur.y + motion[i][1], 3)
-            # child_orientation
+            child_orientation = round(motion[1][3])
             # Initialize action set
 
             # Generate child node
