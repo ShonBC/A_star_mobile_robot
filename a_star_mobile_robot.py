@@ -76,6 +76,7 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
         # goal_x, goal_y = input("Enter goal x and y coordinates separated with a space: ").split()
         goal_x = int(input("Enter goal x coordinate: "))
         goal_y = int(input("Enter goal y coordinate: "))
+        step_size = int(input("Enter the step size for the motion: "))
 
         prev_orientation = start_theta
         # Initialize start and goal nodes from node class
@@ -99,29 +100,33 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
         else:
             break
 
-    return start_node, goal_node
+    return start_node, goal_node, step_size
 
 
 def euclidean_dist(goal_node, node):
-    dist = np.sqrt((goal_node.x - node.x)**2 + (goal_node.y - node.y)**2)
+    dist = np.sqrt((goal_node.x - node.x) ** 2 + (goal_node.y - node.y) ** 2)
     return dist
 
 
-def motion_model(orientation):
+def motion_model(orientation, step_size):
     orientation = np.deg2rad(orientation)
     theta = np.deg2rad(30)
-    step_size = 10
-    model = [[step_size * np.cos(2*theta + orientation), step_size * np.sin(2 * theta + orientation), 1, np.rad2deg(2 * theta + orientation)],  # 60
-             [step_size * np.cos(theta + orientation), step_size * np.sin(theta + orientation), 1, np.rad2deg(theta + orientation)],  # 30
+    # step_size = 10
+    model = [[step_size * np.cos(2 * theta + orientation), step_size * np.sin(2 * theta + orientation), 1,
+              np.rad2deg(2 * theta + orientation)],  # 60
+             [step_size * np.cos(theta + orientation), step_size * np.sin(theta + orientation), 1,
+              np.rad2deg(theta + orientation)],  # 30
              [step_size * np.cos(orientation), step_size * np.sin(orientation), 1, np.rad2deg(orientation)],  # 0
-             [step_size * np.cos(-theta + orientation), step_size * np.sin(-theta + orientation), 1, np.rad2deg(-theta + orientation)],  # -30
-             [step_size * np.cos(-2 * theta + orientation), step_size * np.sin(-2 * theta + orientation), 1, np.rad2deg(-2 * theta + orientation)]  # -60
+             [step_size * np.cos(-theta + orientation), step_size * np.sin(-theta + orientation), 1,
+              np.rad2deg(-theta + orientation)],  # -30
+             [step_size * np.cos(-2 * theta + orientation), step_size * np.sin(-2 * theta + orientation), 1,
+              np.rad2deg(-2 * theta + orientation)]  # -60
              ]
 
     return model
 
 
-def a_star(start_node, goal_node):
+def a_star(start_node, goal_node, step_size):
     # Initialize dictionaries
     path, distance, queue, visited = dict(), dict(), dict(), dict()
 
@@ -136,7 +141,7 @@ def a_star(start_node, goal_node):
                         8: 240, 9: 270, 10: 300, 11: 330, 12: 0}
 
     # Create V matrix to store the information of the visited nodes.
-    V = np.zeros((int(width/threshold), int(height/threshold), int(360/30)))
+    V = np.zeros((int(width / threshold), int(height / threshold), int(360 / 30)))
 
     while True:  # Start of A star Algorithm.
         # Find the node in queue with the minimum cost.
@@ -147,7 +152,7 @@ def a_star(start_node, goal_node):
 
         # If goal node is reached, Break the while loop.
         # Add a threshold(circle) for the goal node
-        if (goal_node.x-cur.x)**2 + (goal_node.y-cur.y)**2 <= 10**2:
+        if (goal_node.x - cur.x) ** 2 + (goal_node.y - cur.y) ** 2 <= 10 ** 2:
             # print("Goal!!!")
             goal_node.parent_index = cur.parent_index
             goal_node.cost = cur.cost
@@ -157,19 +162,22 @@ def a_star(start_node, goal_node):
         visited[cur_index] = cur  # Add current node to visited list.
 
         # Mark 1 for visited nodes in matrix V
-        a = int(round(cur.x)/threshold)
-        b = int(round(cur.y)/threshold)
-        c = orientation_dict[orientation/30]
+        a = int(round(cur.x) / threshold)
+        b = int(round(cur.y) / threshold)
+        c = orientation_dict[orientation / 30]
         V[a][b][c] = 1
 
-        motion = motion_model(orientation)
+        # Initialize action set with orientation and step_size
+        motion = motion_model(orientation, step_size)
 
         # Generate children of current node based on the action set.
         for i in range(len(motion)):
             next_x = round(cur.x + motion[i][0], 3)
             next_y = round(cur.y + motion[i][1], 3)
+            # TODO: Add child_orientation to the Node attribute
+            #  to avoid generating child node in particular area multiple times.
+            #  The problem will occur when running (0, 0) -> (400, 300) for instance.
             child_orientation = round(motion[1][3])
-            # Initialize action set
 
             # Generate child node
             node = Node(next_x, next_y, 15, cur.cost + motion[i][2], cur_index, orientation)
@@ -187,39 +195,30 @@ def a_star(start_node, goal_node):
             # If the next node is already visited, skip it
             if V[a][b][c] == 1:
                 continue
-            # visualize_Dij(node_index)
+
             # Visualize motion
             # node_list.append((node.x, node.y))
             # print(node_list)
-            plt.quiver(cur.x, cur.y, motion[i][0], motion[i][1], units='xy', scale=1, color='r', width = .05)
+            plt.quiver(cur.x, cur.y, motion[i][0], motion[i][1], units='xy', scale=1, color='r', width=.1)
             plt.pause(.0001)
+
             # if node_index in visited:  # If the next node is already visited, skip it
             #     continue
 
-            if node_index in queue:  # If the child node is already in the queue, compare and update the node's cost and parent as needed.
+            # If the child node is already in the queue, compare and update the node's cost and parent as needed.
+            if node_index in queue:
                 if queue[node_index].cost > node.cost:
                     queue[node_index].cost = node.cost
                     queue[node_index].parent_index = cur_index
             else:  # Else add child to the queue.
                 queue[node_index] = node
 
-
-    # # Backtrack the path from Goal to Start
-    # path = []
-    # parent_index = goal_node.parent_index
-    # while parent_index != -1:  # Follow the parents from the goal node to the start node and add them to the path list.
-    #     n = visited[parent_index]
-    #     path.append((n.x, n.y))
-    #     parent_index = n.parent_index
-
-    # path = list(reversed(path))  # Reverse the path list to get the path from start node to goal node.
-    # path.append((goal_node.x, goal_node.y))  # Add Goal node to the end of the path list
-    
     # Backtrack the path from Goal to Start
     path_x, path_y = [goal_node.x], [goal_node.y]
     parent_index = goal_node.parent_index
     child = visited[parent_index]
-    plt.quiver(child.x, child.y, goal_node.x, goal_node.y, units='xy', scale=1, color='r', width = .05)
+    plt.quiver(child.x, child.y, goal_node.x - child.x, goal_node.y - child.y,
+               units='xy', scale=1, color='r', width=.1)
     while parent_index != -1:  # Follow the parents from the goal node to the start node and add them to the path list.
         n = visited[parent_index]
         path_x.append(n.x)
@@ -232,8 +231,8 @@ def a_star(start_node, goal_node):
     # path_y.append(goal_node.y)
     return path_x, path_y
 
-def main():
 
+def main():
     # set obstacle positions
     ox, oy = [], []
     for i in range(0, 400):
@@ -264,7 +263,7 @@ def main():
                 ox.append(i)
                 oy.append(j)
 
-    start_node, goal_node = begin()
+    start_node, goal_node, step_size = begin()
 
     plt.xlim([0, 400])
     plt.ylim([0, 300])
@@ -276,14 +275,15 @@ def main():
     b = [goal_node.x, goal_node.y]
 
     if a != b:
-        path_x, path_y = a_star(start_node, goal_node)  # Call A star algorithm
+        path_x, path_y = a_star(start_node, goal_node, step_size)  # Call A star algorithm
 
         plt.plot(path_x, path_y, "-g")
         plt.pause(0.0001)
         plt.show()
-    
+
     else:
         print("Start position equals the goal position.")
+
 
 if __name__ == '__main__':
     main()
