@@ -136,9 +136,9 @@ def a_star(start_node, goal_node, step_size):
     threshold = 0.5
 
     # Dictionary for orientation
-    orientation_dict = {0: 0, 1: 30, 2: 60, 3: 90,
-                        4: 120, 5: 150, 6: 180, 7: 210,
-                        8: 240, 9: 270, 10: 300, 11: 330, 12: 0}
+    orientation_dict = {0: 0, 30: 1, 60: 2, 90: 3,
+                        120: 4,150: 5, 180: 6, 210: 7,
+                        240: 8, 270: 9, 300: 10, 330: 11, 360: 0}
 
     # Create V matrix to store the information of the visited nodes.
     V = np.zeros((int(width / threshold), int(height / threshold), int(360 / 30)))
@@ -164,7 +164,7 @@ def a_star(start_node, goal_node, step_size):
         # Mark 1 for visited nodes in matrix V
         a = int(round(cur.x) / threshold)
         b = int(round(cur.y) / threshold)
-        c = orientation_dict[orientation / 30]
+        c = orientation_dict[orientation]
         V[a][b][c] = 1
 
         # Initialize action set with orientation and step_size
@@ -180,7 +180,7 @@ def a_star(start_node, goal_node, step_size):
             child_orientation = round(motion[1][3])
 
             # Generate child node
-            node = Node(next_x, next_y, 15, cur.cost + motion[i][2], cur_index, orientation)
+            node = Node(next_x, next_y, 15, cur.cost + motion[i][2], cur_index, child_orientation)
             # Assign child node position
             node_index = (node.x, node.y)
 
@@ -191,7 +191,10 @@ def a_star(start_node, goal_node, step_size):
 
             a = int(round(node.x))
             b = int(round(node.y))
-            c = node.prev_orientation
+            # c = int(node.prev_orientation / 30)
+            if node.prev_orientation > 360:
+                node.prev_orientation = node.prev_orientation - 360
+            c = orientation_dict[node.prev_orientation]
             # If the next node is already visited, skip it
             if V[a][b][c] == 1:
                 continue
