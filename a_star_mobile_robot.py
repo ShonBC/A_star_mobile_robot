@@ -11,13 +11,14 @@ height = 300
 
 # Class for storing node position, cost to come, parent index, and prev_orientation.
 class Node:
-    def __init__(self, x, y, radius, cost, parent_index, prev_orientation):
+    def __init__(self, x, y, radius, cost, parent_index, prev_orientation, curr_orientation):
         self.x = x
         self.y = y
         self.cost = cost
         self.parent_index = parent_index
         self.radius = radius
         self.prev_orientation = prev_orientation
+        self.curr_orientation = curr_orientation
 
 
 def move_check(child_node):  # Check if the move is allowed.
@@ -80,8 +81,8 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
 
         prev_orientation = start_theta
         # Initialize start and goal nodes from node class
-        start_node = Node(start_x, start_y, 15, 0, -1, prev_orientation)
-        goal_node = Node(goal_x, goal_y, 15, 0, -1, 0)
+        start_node = Node(start_x, start_y, 15, 0, -1, prev_orientation, prev_orientation)
+        goal_node = Node(goal_x, goal_y, 15, 0, -1, 0, 0)
 
         # Check if obstacle
         if obstacles_chk(start_node):
@@ -140,7 +141,7 @@ def a_star(start_node, goal_node, step_size):
                         240: 8, 270: 9, 300: 10, 330: 11, 360: 0}
 
     # Create V matrix to store the information of the visited nodes.
-    V = np.zeros((int(width / threshold) + 1, int(height / threshold), int(360 / 30)))
+    V = np.zeros((int(width / threshold) + 1, int(height / threshold) + 1, int(360 / 30)))
 
     while True:  # Start of A star Algorithm.
         # Find the node in queue with the minimum cost.
@@ -155,11 +156,12 @@ def a_star(start_node, goal_node, step_size):
             # print("Goal!!!")
             goal_node.parent_index = cur.parent_index
             goal_node.cost = cur.cost
+            goal_node.curr_orientation = cur.curr_orientation
             print('Goal Found')
             break
 
         del queue[cur_index]  # Remove the current node from the queue.
-        visited[cur_index] = cur  # Add current node to visited list.
+        visited[(cur.x, cur.y, cur.prev_orientation)] = cur  # Add current node to visited list.
 
         # Mark 1 for visited nodes in matrix V
         a = int(round(cur.x) / threshold)
@@ -180,7 +182,7 @@ def a_star(start_node, goal_node, step_size):
             child_orientation = round(motion[i][3])
 
             # Generate child node
-            node = Node(next_x, next_y, 15, cur.cost + motion[i][2], cur_index, child_orientation)
+            node = Node(next_x, next_y, 15, cur.cost + motion[i][2], cur_index, child_orientation, orientation)
             # Assign child node position
             node_index = (node.x, node.y)
 
@@ -217,9 +219,9 @@ def a_star(start_node, goal_node, step_size):
                 queue[node_index] = node
 
     # Backtrack the path from Goal to Start
-    # path_x, path_y = [goal_node.x], [goal_node.y]
+    path_x, path_y = [goal_node.x], [goal_node.y]
     parent_index = goal_node.parent_index
-    child = visited[parent_index]
+    child = visited[(parent_index[0], parent_index[1], goal_node.curr_orientation)]
     plt.quiver(child.x, child.y, goal_node.x - child.x, goal_node.y - child.y,
                units='xy', scale=1, color='r', width=.1)
     # while parent_index != -1:  # Follow the parents from the goal node to the start node and add them to the path list.
@@ -228,16 +230,18 @@ def a_star(start_node, goal_node, step_size):
     #     path_y.append(n.y)
     #     parent_index = n.parent_index
 
-    path_x, path_y =[], []
+    ori = child.prev_orientation
 
-    for key in visited:
-        n = visited[key]
+    while parent_index != (start_node.x, start_node.y):  # Follow the parents from the goal node to the start node and add them to the path list.
+        n = visited[(parent_index[0], parent_index[1], ori)]
         path_x.append(n.x)
         path_y.append(n.y)
-        # parent_index = n.parent_index
+        parent_index = n.parent_index
+        print(n.x, " ", n.y )
+        ori = n.curr_orientation
 
-    path_x.append(goal_node.x)
-    path_y.append(goal_node.y)
+    path_x.append(start_node.x)
+    path_y.append(start_node.y)
 
     # path = list(reversed(path))  # Reverse the path list to get the path from start node to goal node.
     # path.append((goal_node.x, goal_node.y))  # Add Goal node to the end of the path list
@@ -292,6 +296,7 @@ def main():
         path_x, path_y = a_star(start_node, goal_node, step_size)  # Call A star algorithm
 
         plt.plot(path_x, path_y, "-g")
+        # plt.scatter(path_x, path_y, marker="o")
         plt.pause(0.0001)
         plt.show()
 
