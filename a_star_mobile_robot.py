@@ -111,16 +111,15 @@ def euclidean_dist(goal_node, node):
 def motion_model(orientation, step_size):
     orientation = np.deg2rad(orientation)
     theta = np.deg2rad(30)
-    # step_size = 10
     model = [[step_size * np.cos(2 * theta + orientation), step_size * np.sin(2 * theta + orientation), 1,
               np.rad2deg(2 * theta + orientation)],  # 60
              [step_size * np.cos(theta + orientation), step_size * np.sin(theta + orientation), 1,
               np.rad2deg(theta + orientation)],  # 30
              [step_size * np.cos(orientation), step_size * np.sin(orientation), 1, np.rad2deg(orientation)],  # 0
              [step_size * np.cos(-theta + orientation), step_size * np.sin(-theta + orientation), 1,
-              np.rad2deg(-theta + orientation)],  # -30
+              360 - np.rad2deg(-theta + orientation)],  # -30
              [step_size * np.cos(-2 * theta + orientation), step_size * np.sin(-2 * theta + orientation), 1,
-              np.rad2deg(-2 * theta + orientation)]  # -60
+              360 - np.rad2deg(-2 * theta + orientation)]  # -60
              ]
 
     return model
@@ -177,7 +176,7 @@ def a_star(start_node, goal_node, step_size):
             # TODO: Add child_orientation to the Node attribute
             #  to avoid generating child node in particular area multiple times.
             #  The problem will occur when running (0, 0) -> (400, 300) for instance.
-            child_orientation = round(motion[1][3])
+            child_orientation = round(motion[i][3])
 
             # Generate child node
             node = Node(next_x, next_y, 15, cur.cost + motion[i][2], cur_index, child_orientation)
