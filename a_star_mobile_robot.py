@@ -140,7 +140,7 @@ def a_star(start_node, goal_node, step_size):
                         240: 8, 270: 9, 300: 10, 330: 11, 360: 0}
 
     # Create V matrix to store the information of the visited nodes.
-    V = np.zeros((int(width / threshold), int(height / threshold), int(360 / 30)))
+    V = np.zeros((int(width / threshold) + 1, int(height / threshold), int(360 / 30)))
 
     while True:  # Start of A star Algorithm.
         # Find the node in queue with the minimum cost.
@@ -151,7 +151,7 @@ def a_star(start_node, goal_node, step_size):
 
         # If goal node is reached, Break the while loop.
         # Add a threshold(circle) for the goal node
-        if (goal_node.x - cur.x) ** 2 + (goal_node.y - cur.y) ** 2 <= 10 ** 2:
+        if (goal_node.x - cur.x) ** 2 + (goal_node.y - cur.y) ** 2 <= step_size ** 2:
             # print("Goal!!!")
             goal_node.parent_index = cur.parent_index
             goal_node.cost = cur.cost
