@@ -151,10 +151,11 @@ def a_star(start_node, goal_node, step_size):
 
         # If goal node is reached, Break the while loop.
         # Add a threshold(circle) for the goal node
-        if (goal_node.x - cur.x) ** 2 + (goal_node.y - cur.y) ** 2 <= step_size ** 2:
+        if (goal_node.x - cur.x) ** 2 + (goal_node.y - cur.y) ** 2 <= (1.5 * (step_size)) ** 2:
             # print("Goal!!!")
             goal_node.parent_index = cur.parent_index
             goal_node.cost = cur.cost
+            print('Goal Found')
             break
 
         del queue[cur_index]  # Remove the current node from the queue.
@@ -216,16 +217,27 @@ def a_star(start_node, goal_node, step_size):
                 queue[node_index] = node
 
     # Backtrack the path from Goal to Start
-    path_x, path_y = [goal_node.x], [goal_node.y]
+    # path_x, path_y = [goal_node.x], [goal_node.y]
     parent_index = goal_node.parent_index
     child = visited[parent_index]
     plt.quiver(child.x, child.y, goal_node.x - child.x, goal_node.y - child.y,
                units='xy', scale=1, color='r', width=.1)
-    while parent_index != -1:  # Follow the parents from the goal node to the start node and add them to the path list.
-        n = visited[parent_index]
+    # while parent_index != -1:  # Follow the parents from the goal node to the start node and add them to the path list.
+    #     n = visited[parent_index]
+    #     path_x.append(n.x)
+    #     path_y.append(n.y)
+    #     parent_index = n.parent_index
+
+    path_x, path_y =[], []
+
+    for key in visited:
+        n = visited[key]
         path_x.append(n.x)
         path_y.append(n.y)
-        parent_index = n.parent_index
+        # parent_index = n.parent_index
+
+    path_x.append(goal_node.x)
+    path_y.append(goal_node.y)
 
     # path = list(reversed(path))  # Reverse the path list to get the path from start node to goal node.
     # path.append((goal_node.x, goal_node.y))  # Add Goal node to the end of the path list
