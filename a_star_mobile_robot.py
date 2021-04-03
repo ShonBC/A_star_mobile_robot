@@ -20,7 +20,6 @@ class Node:
         self.prev_orientation = prev_orientation
         self.curr_orientation = curr_orientation
 
-
 def move_check(child_node):  # Check if the move is allowed.
 
     # Check if out of puzzle boundary
@@ -104,7 +103,7 @@ def begin():  # Ask for user input of start and goal pos. Start and goal much be
     return start_node, goal_node, step_size
 
 
-def euclidean_dist(goal_node, node):
+def euclidean_dist(goal_node, node): # Calculate cost to goal
     dist = np.sqrt((goal_node.x - node.x) ** 2 + (goal_node.y - node.y) ** 2)
     return dist
 
@@ -145,15 +144,14 @@ def a_star(start_node, goal_node, step_size):
 
     while True:  # Start of A star Algorithm.
         # Find the node in queue with the minimum cost.
-        cur_index = min(queue, key=lambda o: queue[o].cost + euclidean_dist(goal_node, queue[o]))
-        # Assign node in queue with minimum cost to be the current node to be tested.
+        cur_index = min(queue, key=lambda o: queue[o].cost + euclidean_dist(goal_node, queue[o])) # Assign node in queue with minimum cost to be the current node to be tested.
         cur = queue[cur_index]
         orientation = cur.prev_orientation
 
         # If goal node is reached, Break the while loop.
         # Add a threshold(circle) for the goal node
         if (goal_node.x - cur.x) ** 2 + (goal_node.y - cur.y) ** 2 <= (1.5 * (step_size)) ** 2:
-            # print("Goal!!!")
+
             goal_node.parent_index = cur.parent_index
             goal_node.cost = cur.cost
             goal_node.curr_orientation = cur.curr_orientation
@@ -176,9 +174,6 @@ def a_star(start_node, goal_node, step_size):
         for i in range(len(motion)):
             next_x = round(cur.x + motion[i][0], 3)
             next_y = round(cur.y + motion[i][1], 3)
-            # TODO: Add child_orientation to the Node attribute
-            #  to avoid generating child node in particular area multiple times.
-            #  The problem will occur when running (0, 0) -> (400, 300) for instance.
             child_orientation = round(motion[i][3])
 
             # Generate child node
@@ -202,13 +197,8 @@ def a_star(start_node, goal_node, step_size):
                 continue
 
             # Visualize motion
-            # node_list.append((node.x, node.y))
-            # print(node_list)
             plt.quiver(cur.x, cur.y, motion[i][0], motion[i][1], units='xy', scale=1, color='r', width=.1)
             plt.pause(.0001)
-
-            # if node_index in visited:  # If the next node is already visited, skip it
-            #     continue
 
             # If the child node is already in the queue, compare and update the node's cost and parent as needed.
             if node_index in queue:
@@ -224,11 +214,6 @@ def a_star(start_node, goal_node, step_size):
     child = visited[(parent_index[0], parent_index[1], goal_node.curr_orientation)]
     plt.quiver(child.x, child.y, goal_node.x - child.x, goal_node.y - child.y,
                units='xy', scale=1, color='r', width=.1)
-    # while parent_index != -1:  # Follow the parents from the goal node to the start node and add them to the path list.
-    #     n = visited[parent_index]
-    #     path_x.append(n.x)
-    #     path_y.append(n.y)
-    #     parent_index = n.parent_index
 
     ori = child.prev_orientation
 
@@ -237,16 +222,11 @@ def a_star(start_node, goal_node, step_size):
         path_x.append(n.x)
         path_y.append(n.y)
         parent_index = n.parent_index
-        print(n.x, " ", n.y )
         ori = n.curr_orientation
 
     path_x.append(start_node.x)
     path_y.append(start_node.y)
 
-    # path = list(reversed(path))  # Reverse the path list to get the path from start node to goal node.
-    # path.append((goal_node.x, goal_node.y))  # Add Goal node to the end of the path list
-    # path_x.append(goal_node.x)
-    # path_y.append(goal_node.y)
     return path_x, path_y
 
 
@@ -296,7 +276,6 @@ def main():
         path_x, path_y = a_star(start_node, goal_node, step_size)  # Call A star algorithm
 
         plt.plot(path_x, path_y, "-g")
-        # plt.scatter(path_x, path_y, marker="o")
         plt.pause(0.0001)
         plt.show()
 
